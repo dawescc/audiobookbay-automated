@@ -40,6 +40,10 @@ SAVE_PATH_BASE = os.getenv("SAVE_PATH_BASE")
 NAV_LINK_NAME = os.getenv("NAV_LINK_NAME")
 NAV_LINK_URL = os.getenv("NAV_LINK_URL")
 
+AUDIOBOOKSHELF_URL = os.getenv("AUDIOBOOKSHELF_URL")
+ABS_KEY = os.getenv("ABS_KEY")
+ABS_LIB = os.getenv("ABS_LIB")
+
 #Print configuration
 print(f"ABB_HOSTNAME: {ABB_HOSTNAME}")
 print(f"DOWNLOAD_CLIENT: {DOWNLOAD_CLIENT}")
@@ -58,7 +62,12 @@ print(f"PAGE_LIMIT: {PAGE_LIMIT}")
 def inject_nav_link():
     return {
         'nav_link_name': os.getenv('NAV_LINK_NAME'),
-        'nav_link_url': os.getenv('NAV_LINK_URL')
+        'nav_link_url': os.getenv('NAV_LINK_URL'),
+        'library_reload_enabled': all([
+            os.getenv("AUDIOBOOKSHELF_URL"),
+            os.getenv("ABS_KEY"),
+            os.getenv("ABS_LIB")
+        ])
     }
 
 
@@ -154,9 +163,6 @@ def search():
         print(f"[ERROR] Failed to search: {e}")
         return render_template('search.html', books=books, error=f"Failed to search. { str(e) }")
 
-
-
-
 # Endpoint to send magnet link to qBittorrent
 @app.route('/send', methods=['POST'])
 def send():
@@ -190,14 +196,17 @@ def send():
         return jsonify({'message': f'Download added successfully! This may take some time, the download will show in Audiobookshelf when completed.'})
     except Exception as e:
         return jsonify({'message': str(e)}), 500
+
 @app.route('/status')
 def status():
     try:
+        torrent_list = []
         if DOWNLOAD_CLIENT == 'transmission':
             transmission = transmissionrpc(host=DL_HOST, port=DL_PORT, username=DL_USERNAME, password=DL_PASSWORD)
             torrents = transmission.get_torrents()
             torrent_list = [
                 {
+                    'id': torrent.id,
                     'name': torrent.name,
                     'progress': round(torrent.progress, 2),
                     'state': torrent.status,
@@ -205,13 +214,13 @@ def status():
                 }
                 for torrent in torrents
             ]
-            return render_template('status.html', torrents=torrent_list)
         elif DOWNLOAD_CLIENT == 'qbittorrent':
             qb = Client(host=DL_HOST, port=DL_PORT, username=DL_USERNAME, password=DL_PASSWORD)
             qb.auth_log_in()
             torrents = qb.torrents_info(category=DL_CATEGORY)
             torrent_list = [
                 {
+                    'id': torrent.hash,
                     'name': torrent.name,
                     'progress': round(torrent.progress * 100, 2),
                     'state': torrent.state,
@@ -228,6 +237,7 @@ def status():
             )
             torrent_list = [
                 {
+                    "id": k,
                     "name": torrent["name"],
                     "progress": round(torrent["progress"], 2),
                     "state": torrent["state"],
@@ -236,11 +246,56 @@ def status():
                 for k, torrent in torrents.result.items()
             ]
         else:
-            return jsonify({'message': 'Unsupported download client'}), 400
+            return render_template('status.html', torrents=[], error='Unsupported download client')
         return render_template('status.html', torrents=torrent_list)
     except Exception as e:
-        return jsonify({'message': f"Failed to fetch torrent status: {e}"}), 500
+        return render_template('status.html', torrents=[], error=f"Failed to fetch torrent status: {e}")
 
+@app.route('/delete', methods=['POST'])
+def delete():
+    try:
+        data = request.json
+        torrent_id = data.get('id')
+        if not torrent_id:
+            return jsonify({'message': 'Torrent ID is required'}), 400
+
+        if DOWNLOAD_CLIENT == 'transmission':
+            transmission = transmissionrpc(host=DL_HOST, port=DL_PORT, username=DL_USERNAME, password=DL_PASSWORD)
+            transmission.remove_torrent(ids=[int(torrent_id)], delete_data=False)
+        elif DOWNLOAD_CLIENT == 'qbittorrent':
+            qb = Client(host=DL_HOST, port=DL_PORT, username=DL_USERNAME, password=DL_PASSWORD)
+            qb.auth_log_in()
+            qb.torrents_delete(torrent_hashes=torrent_id, delete_files=False)
+        elif DOWNLOAD_CLIENT == "delugeweb":
+            delugeweb = delugewebclient(url=DL_URL, password=DL_PASSWORD)
+            delugeweb.login()
+            delugeweb.remove_torrent(torrent_id, remove_data=False)
+        else:
+            return jsonify({'message': 'Unsupported download client'}), 400
+
+        return jsonify({'message': 'Torrent removed successfully.'})
+    except Exception as e:
+        return jsonify({'message': f'Failed to remove torrent: {e}'}), 500
+
+@app.route('/reload_library', methods=['POST'])
+def reload_library():
+    if not all([AUDIOBOOKSHELF_URL, ABS_KEY, ABS_LIB]):
+        return jsonify({'message': 'Audiobookshelf integration not configured.'}), 400
+    
+    try:
+        url = f"{AUDIOBOOKSHELF_URL}/api/libraries/{ABS_LIB}/scan"
+        headers = {
+            'Authorization': f'Bearer {ABS_KEY}'
+        }
+        response = requests.post(url, headers=headers)
+        response.raise_for_status() 
+        return jsonify({'message': 'Audiobookshelf library scan initiated!'})
+    except requests.exceptions.RequestException as e:
+        # Provide more detail in the error message if possible
+        error_message = str(e)
+        if e.response is not None:
+             error_message = f"{e.response.status_code} {e.response.reason}: {e.response.text}"
+        return jsonify({'message': f"Failed to trigger library scan: {error_message}"}), 500
 
 
 if __name__ == '__main__':

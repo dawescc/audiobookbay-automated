@@ -1,25 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Flask App{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {% block extra_css %}{% endblock %}
-</head>
-<body>
-    <!-- Navbar -->
-    <div class="navbar">
-        <a href="{{ url_for('search') }}" class="{% if request.endpoint == 'search' %}active{% endif %}">Search</a>
-        <a href="{{ url_for('status') }}" class="{% if request.endpoint == 'status' %}active{% endif %}">Status</a>
-        {% if nav_link_name and nav_link_url %}
-        <a href="{{ nav_link_url }}" target="_blank">{{ nav_link_name }}</a>
-        {% endif %}
-    </div>
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>{% block title %}Flask App{% endblock %}</title>
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='css/style.css') }}" />
+		{% block extra_css %}{% endblock %}
+	</head>
+	<body>
+		<!-- Navbar -->
+		<div class="navbar">
+			<a
+				href="{{ url_for('search') }}"
+				class="{% if request.endpoint == 'search' %}active{% endif %}"
+				>Search</a
+			>
+			<a
+				href="{{ url_for('status') }}"
+				class="{% if request.endpoint == 'status' %}active{% endif %}"
+				>Status</a
+			>
+			{% if nav_link_name and nav_link_url %}
+			<a
+				href="{{ nav_link_url }}"
+				target="_blank"
+				>{{ nav_link_name }}</a
+			>
+			{% endif %} {% if library_reload_enabled %}
+			<a
+				href="#"
+				onclick="reloadLibrary(); return false;"
+				>Reload Library</a
+			>
+			{% endif %}
+		</div>
 
-    <!-- Page Content -->
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
-</body>
+		<!-- Page Content -->
+		<div class="content">{% block content %}{% endblock %}</div>
+
+		<script>
+			function reloadLibrary() {
+				if (!confirm("Are you sure you want to initiate a library scan?")) {
+					return;
+				}
+				fetch("/reload_library", {
+					method: "POST",
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						alert(data.message);
+					})
+					.catch((error) => {
+						console.error("Error:", error);
+						alert("An error occurred while trying to reload the library.");
+					});
+			}
+		</script>
+	</body>
 </html>
