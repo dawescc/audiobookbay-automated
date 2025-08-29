@@ -1,12 +1,5 @@
-{% extends "base.html" %} {% block title %}Torrent Status{% endblock %} {% block extra_css %}
-<link
-	rel="stylesheet"
-	href="{{ url_for('static', filename='css/status.css') }}" />
-{% endblock %} {% block content %}
-<div class="title-container">
-	<h1>Torrent Status</h1>
-</div>
-<table>
+{% extends "base.html" %} {% block title %}Torrent Status{% endblock %} {% block content %}
+<table class="status">
 	<thead>
 		<tr>
 			<th>Title</th>

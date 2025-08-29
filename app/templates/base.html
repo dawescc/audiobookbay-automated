@@ -14,16 +14,23 @@
 	<body>
 		<!-- Navbar -->
 		<div class="navbar">
-			<a
-				href="{{ url_for('search') }}"
-				class="{% if request.endpoint == 'search' %}active{% endif %}"
-				>Search</a
-			>
-			<a
-				href="{{ url_for('status') }}"
-				class="{% if request.endpoint == 'status' %}active{% endif %}"
-				>Status</a
-			>
+			<div class="logo">SABB</div>
+			<div class="links">
+				<a
+					href="{{ url_for('search') }}"
+					class="{% if request.endpoint == 'search' %}active{% endif %}"
+					>Search</a
+				>
+				<a
+					href="{{ url_for('status') }}"
+					class="{% if request.endpoint == 'status' %}active{% endif %}"
+					>Status</a
+				>
+			</div>
+		</div>
+
+		{% if (nav_link_name and nav_link_url) or library_reload_enabled %}
+		<div class="menubar">
 			{% if nav_link_name and nav_link_url %}
 			<a
 				href="{{ nav_link_url }}"
@@ -38,6 +45,7 @@
 			>
 			{% endif %}
 		</div>
+		{% endif %}
 
 		<!-- Page Content -->
 		<div class="content">{% block content %}{% endblock %}</div>
