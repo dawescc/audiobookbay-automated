@@ -14,59 +14,75 @@
 	<body>
 		<!-- Navbar -->
 		<div class="navbar">
-			<div class="logo">SABB</div>
-			<div class="links">
+			<div class="nav">
+				<div class="logo">
+					<a
+						href="{{ url_for('search') }}"
+						class="clean"
+						>SABB</a
+					>
+				</div>
+				<div class="links">
+					<a
+						href="{{ url_for('search') }}"
+						class="{% if request.endpoint == 'search' %}active{% endif %}"
+						>Search</a
+					>
+					<a
+						href="{{ url_for('status') }}"
+						class="{% if request.endpoint == 'status' %}active{% endif %}"
+						>Status</a
+					>
+				</div>
+			</div>
+			{% if (nav_link_name and nav_link_url) or library_reload_enabled %}
+			<div class="menubar">
+				{% if nav_link_name and nav_link_url %}
 				<a
-					href="{{ url_for('search') }}"
-					class="{% if request.endpoint == 'search' %}active{% endif %}"
-					>Search</a
+					href="{{ nav_link_url }}"
+					target="_blank"
+					>{{ nav_link_name }}</a
 				>
+				{% endif %} {% if library_reload_enabled %}
 				<a
-					href="{{ url_for('status') }}"
-					class="{% if request.endpoint == 'status' %}active{% endif %}"
-					>Status</a
+					href="#"
+					onclick="reloadLibrary(); return false;"
+					>Reload Library</a
 				>
+				{% endif %}
+			</div>
+			{% endif %}
+
+			<div class="form-container">
+				<form
+					method="post"
+					action="{{ url_for('search') }}"
+					class="search-container"
+					onsubmit="showLoadingSpinner()">
+					<input
+						type="text"
+						name="query"
+						placeholder="Enter book name"
+						class="search-bar"
+						required />
+					<button
+						type="submit"
+						class="search-button"
+						id="search-button">
+						<span class="button-text">Search</span>
+						<div
+							class="button-spinner"
+							id="button-spinner"
+							style="display: none">
+							<div class="spinner"></div>
+						</div>
+					</button>
+				</form>
 			</div>
 		</div>
 
-		{% if (nav_link_name and nav_link_url) or library_reload_enabled %}
-		<div class="menubar">
-			{% if nav_link_name and nav_link_url %}
-			<a
-				href="{{ nav_link_url }}"
-				target="_blank"
-				>{{ nav_link_name }}</a
-			>
-			{% endif %} {% if library_reload_enabled %}
-			<a
-				href="#"
-				onclick="reloadLibrary(); return false;"
-				>Reload Library</a
-			>
-			{% endif %}
-		</div>
-		{% endif %}
-
 		<!-- Page Content -->
 		<div class="content">{% block content %}{% endblock %}</div>
-
-		<script>
-			function reloadLibrary() {
-				if (!confirm("Are you sure you want to initiate a library scan?")) {
-					return;
-				}
-				fetch("/reload_library", {
-					method: "POST",
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						alert(data.message);
-					})
-					.catch((error) => {
-						console.error("Error:", error);
-						alert("An error occurred while trying to reload the library.");
-					});
-			}
-		</script>
+		<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 	</body>
 </html>

@@ -1,16 +1,28 @@
 :root {
 	color-scheme: light dark;
+	background-color: Canvas;
+	color: CanvasText;
 	font-size: 14px;
 	font-family: sans-serif;
 }
 
 body {
 	margin: 0;
-	max-width: 100dvw;
+	padding-bottom: 2rem;
 
 	*:any-link {
 		text-decoration: none;
-		color: currentColor;
+		&:hover,
+		&.active {
+			text-decoration: underline 2px solid;
+		}
+		&.clean {
+			&:hover {
+				text-decoration: none;
+			}
+			text-decoration: none;
+			color: currentColor;
+		}
 	}
 }
 
@@ -29,105 +41,81 @@ body {
 }
 
 .navbar {
-	background-color: black;
-	color: white;
-	display: flex;
-	align-content: center;
-	justify-content: space-between;
-	padding: 0.5rem 0.75rem;
 	position: sticky;
 	top: 0;
 	z-index: 1000;
-}
+	background-color: Canvas;
+	color: CanvasText;
 
-.menubar {
-	background-color: color-mix(in srgb, black 93%, white 7%);
-	display: flex;
-	justify-content: end;
-	align-items: center;
-	gap: 0.75rem;
-	padding: 0.5rem;
-	font-size: 0.95rem;
-}
-
-.navbar,
-.menubar {
-	a {
-		&:hover {
-			color: #ffcc00;
-		}
-
-		&.active {
-			color: #ffcc00;
-			border-bottom: 2px solid #ffcc00;
-		}
-	}
-
-	.logo {
-		font-weight: bolder;
-		font-size: 1.5rem;
-	}
-
-	.links {
+	.nav {
 		display: flex;
-		max-width: 70%;
-		flex-wrap: wrap;
-		justify-content: end;
 		align-content: center;
-		gap: 0.5rem 1rem;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		padding: 0.5rem 0.75rem;
+
+		.logo {
+			font-weight: bolder;
+			font-size: 1.5rem;
+		}
+
+		.links {
+			display: flex;
+			max-width: 70%;
+			flex-wrap: wrap;
+			justify-content: end;
+			align-content: center;
+			gap: 0.5rem 1rem;
+		}
+	}
+
+	.form-container {
+		form {
+			background-color: Field;
+			color: FieldText;
+			flex-grow: 1;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 0 1rem;
+			padding: 0.25rem;
+			border-bottom: 1px solid currentColor;
+
+			input[type="text"] {
+				background-color: transparent;
+				border: none;
+				flex: 1;
+				padding: 10px;
+				font-size: 16px;
+				&:focus-visible,
+				&:focus {
+					outline-style: none;
+					outline-width: 0px;
+				}
+			}
+		}
 	}
 }
 
-form {
-	flex-grow: 1;
+.menubar {
+	background-color: color-mix(in srgb, Canvas 95%, CanvasText 5%);
 	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 0 1rem;
-	padding: 1rem;
-	border: 1px solid currentColor;
-
-	input[type="text"] {
-		background-color: transparent;
-		border: none;
-		flex: 1;
-		padding: 10px;
-		font-size: 16px;
-		&:focus-visible,
-		&:focus {
-			outline-style: none;
-			outline-width: 0px;
-		}
-	}
+	align-content: center;
+	flex-wrap: wrap;
+	justify-content: end;
+	gap: 0.5rem 1rem;
+	padding: 0.75rem 0.75rem;
 }
 
 button {
-	border: 1px solid currentColor;
+	border: 1px solid ButtonBorder;
+	display: flex;
+	gap: 0.2em;
+	align-items: center;
 	padding: 0.5rem 0.75rem;
 	border-radius: 5px;
 	font-size: 1rem;
 	cursor: pointer;
-}
-
-.loading-spinner {
-	display: none;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-}
-
-.spinner {
-	width: 1rem;
-	height: 1rem;
-	border: 5px solid rgba(255, 255, 255, 0.3);
-	border-top: 5px solid white;
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-}
-
-.loading-spinner p {
-	font-size: 1rem;
-	color: white;
 }
 
 .button-spinner {
@@ -136,19 +124,12 @@ button {
 }
 
 .button-spinner .spinner {
-	width: 16px;
-	height: 16px;
+	width: 1em;
+	height: 1em;
 	border: 2px solid #f3f3f3;
 	border-top: 2px solid #3498db;
 	border-radius: 50%;
 	animation: spin 1s linear infinite;
-}
-
-.message-scroller {
-	display: none;
-	text-align: center;
-	margin: 0 auto;
-	width: fit-content;
 }
 
 .error-message {
@@ -177,9 +158,6 @@ table {
 	th:not(:first-of-type),
 	td:not(:first-of-type) {
 		border-inline: 0.75px dashed;
-	}
-	tr:nth-of-type(even) {
-		background-color: color-mix(in srgb, black 80%, white 20%);
 	}
 }
 

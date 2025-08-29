@@ -70,8 +70,6 @@ def inject_nav_link():
         ])
     }
 
-
-
 # Helper function to search AudiobookBay
 def search_audiobookbay(query, max_pages=PAGE_LIMIT):
     headers = {
